@@ -49,11 +49,28 @@ transaction_running AS (
     SELECT
         account_id,
         transaction_date,
+
         SUM(
-            CASE WHEN transaction_type = 'Withdrawal' THEN -amount ELSE amount END
-        ) OVER (PARTITION BY account_id ORDER BY transaction_date) AS running_total,
-        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date ASC) AS rn_asc,
-        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date DESC) AS rn_desc
+            CASE
+                WHEN transaction_type = 'Withdrawal' THEN -amount
+                ELSE amount
+            END)
+        OVER(
+            PARTITION BY account_id
+            ORDER BY transaction_date
+        ) AS running_total,
+
+        ROW_NUMBER()
+        OVER(
+            PARTITION BY account_id
+            ORDER BY transaction_date ASC
+        ) AS rn_asc,
+
+        ROW_NUMBER()
+        OVER(
+            PARTITION BY account_id
+            ORDER BY transaction_date DESC
+        ) AS rn_desc
     FROM transactions
 ),
 account_trend AS (
@@ -74,7 +91,8 @@ customer_trend AS (
             ELSE 'No Transaction History'
         END AS trends
     FROM accounts a
-    LEFT JOIN account_trend ct ON ct.account_id = a.account_id
+    LEFT JOIN account_trend ct
+        ON ct.account_id = a.account_id
     GROUP BY a.customer_id
 ),
 customer_loan_count AS (
@@ -88,7 +106,10 @@ customer_loan_count AS (
 customer_financial_trouble AS (
     SELECT
         customer_id,
-        NTILE(5) OVER (ORDER BY total_balance ASC) AS balance_rank
+        NTILE(5)
+        OVER(
+            ORDER BY total_balance ASC
+        ) AS balance_rank
     FROM customer_balance
 )
 SELECT
@@ -102,10 +123,14 @@ SELECT
         ELSE 'No'
     END AS financial_trouble_flag
 FROM customers c
-LEFT JOIN customer_balance cb ON c.customer_id = cb.customer_id
-LEFT JOIN customer_loan_count clc ON cb.customer_id = clc.customer_id
-LEFT JOIN customer_financial_trouble cft ON clc.customer_id = cft.customer_id
-LEFT JOIN customer_trend tr ON cft.customer_id = tr.customer_id;
+LEFT JOIN customer_balance cb
+    ON c.customer_id = cb.customer_id
+LEFT JOIN customer_loan_count clc
+    ON cb.customer_id = clc.customer_id
+LEFT JOIN customer_financial_trouble cft
+    ON clc.customer_id = cft.customer_id
+LEFT JOIN customer_trend tr
+    ON cft.customer_id = tr.customer_id;
 ```
 
 ## Mga Desisyon Sa Likod Ng Query
