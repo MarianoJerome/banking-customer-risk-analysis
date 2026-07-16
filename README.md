@@ -128,5 +128,5 @@ Kailangan nating i-reach out agad si Carla Santos para alamin ang dahilan ng ove
 
 - **SQL:** Multiple CTEs, window functions (`SUM() OVER`, `ROW_NUMBER()`, `NTILE()`), conditional aggregation (`MAX(CASE WHEN...)`)
 - **Data Integrity:** Natukoy at naayos ang isang silent data-loss bug (INNER JOIN vs LEFT JOIN) na hindi nagpapakita ng error message
-- **Business Thinking:** Pag-define ng malabong termino ("financial trouble") gamit ang kumbinasyon ng mga signal, hindi isang sukatan lang
+- **Business Thinking:** Pag-define ng malabong term ("financial trouble") gamit ang combination ng mga signal, hindi isang sukatan lang
 - **Business Communication:** "Answer First" na recommendation format
