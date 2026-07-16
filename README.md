@@ -1,5 +1,5 @@
 # Customer Profile & Financial Risk Analysis
-*Mini-Project #2 — SQL, Window Functions & Data Integrity (Banking)*
+*Mini-Project #1 — SQL, Window Functions & Data Integrity (Banking)*
 
 ## Business Context
 
