@@ -100,7 +100,10 @@ transaction_running AS (
 
         SUM(
             CASE WHEN transaction_type = 'Withdrawal' THEN -amount ELSE amount END
-        ) OVER (PARTITION BY account_id ORDER BY transaction_date) AS running_total,
+        ) OVER(
+            PARTITION BY account_id
+            ORDER BY transaction_date
+        ) AS running_total,
 
         ROW_NUMBER()
         OVER(
