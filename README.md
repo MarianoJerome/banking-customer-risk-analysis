@@ -135,12 +135,14 @@ account_trend AS (
 customer_trend AS (
     SELECT
         a.customer_id,
+
         CASE 
             WHEN SUM(last_balance) > SUM(first_balance) THEN 'Increased' 
             WHEN SUM(last_balance) < SUM(first_balance) THEN 'Decreased'
             WHEN SUM(last_balance) = SUM(first_balance) THEN 'No Change'
             ELSE 'No Transaction History'
         END AS trends
+
     FROM accounts a
     LEFT JOIN account_trend ct ON ct.account_id = a.account_id
     GROUP BY a.customer_id
@@ -149,7 +151,12 @@ customer_loan_count AS (
     SELECT
         customer_id,
         COUNT(*) AS loan_count,
-        MAX(CASE WHEN status = 'Overdue' THEN 'Yes' ELSE 'No' END) AS loan_status
+
+        MAX(
+            CASE
+                WHEN status = 'Overdue' THEN 'Yes' ELSE 'No'
+            END) AS loan_status
+
     FROM loans
     GROUP BY customer_id
 ),
