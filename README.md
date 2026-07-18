@@ -97,11 +97,22 @@ transaction_running AS (
     SELECT
         account_id,
         transaction_date,
+
         SUM(
             CASE WHEN transaction_type = 'Withdrawal' THEN -amount ELSE amount END
         ) OVER (PARTITION BY account_id ORDER BY transaction_date) AS running_total,
-        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date ASC) AS rn_asc,
-        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date DESC) AS rn_desc
+
+        ROW_NUMBER()
+        OVER(
+            PARTITION BY account_id
+            ORDER BY transaction_date ASC
+        ) AS rn_asc,
+
+        ROW_NUMBER()
+            OVER(PARTITION BY account_id
+            ORDER BY transaction_date DESC
+        ) AS rn_desc
+
     FROM transactions
 ),
 account_trend AS (
