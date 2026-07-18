@@ -139,6 +139,15 @@ LEFT JOIN customer_trend tr
 - **`LEFT JOIN` ginamit, hindi regular JOIN**, importante ito. Nadicover habang gumagawa na si Carla Santos ay may account na walang recorded transactions. Kung regular JOIN lang, mawawala siya sa buong report nang walang error o alert. Kaya ginamit ang `LEFT JOIN`, simula sa `accounts` table (dahil kumpleto ito, lahat ng customers naka-list doon).
 - **`NTILE(5)` walang `PARTITION BY`** — dahil ang layunin ay i-rank ang lahat ng customers laban sa isa't isa, hindi bawat customer nang hiwalay.
 
+## Sample Output
+
+| customer_id | customer_name | total_balance | total_loans | trends | financial_trouble_flag |
+|---|---|---|---|---|---|
+| 1 | Ana Reyes | 195,000 | 2 | Increased | No |
+| 2 | Ben Cruz | 80,000 | 1 | Increased | No |
+| 3 | Carla Santos | 20,000 | 1 | No Transaction History | **Yes** |
+| 4 | Diego Torres | 800,000 | 1 | Decreased | No |
+
 ## Insight
 
 Si Carla Santos ang dapat bigyan ng pinaka-mataas na atensyon at bantayan. Siya ang may pinakamababang total balance (₱20,000, kabilang sa bottom 20% ng lahat ng customers) at may overdue Auto Loan. Wala rin siyang transaction history, na nagpapahiwatig na bago pa lamang siya o hindi gaanong aktibo ang kanyang account. Ang combination ng mababa ang balance, may overdue loan, at walang transaction activity ay may mataas na sign ng financial trouble
