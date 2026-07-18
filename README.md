@@ -118,8 +118,17 @@ transaction_running AS (
 account_trend AS (
     SELECT
         account_id,
-        MAX(CASE WHEN rn_asc = 1 THEN running_total END) AS first_balance,
-        MAX(CASE WHEN rn_desc = 1 THEN running_total END) AS last_balance
+
+        MAX(
+            CASE
+                WHEN rn_asc = 1 THEN running_total
+            END) AS first_balance,
+
+        MAX(
+            CASE
+                WHEN rn_desc = 1 THEN running_total
+            END) AS last_balance
+
     FROM transaction_running
     GROUP BY account_id
 ),
@@ -147,7 +156,12 @@ customer_loan_count AS (
 customer_financial_trouble AS (
     SELECT
         customer_id,
-        NTILE(5) OVER (ORDER BY total_balance ASC) AS balance_rank
+
+        NTILE(5)
+        OVER(
+            ORDER BY total_balance ASC
+        ) AS balance_rank
+
     FROM customer_balance
 )
 SELECT
@@ -156,15 +170,21 @@ SELECT
     cb.total_balance,
     clc.loan_count AS total_loans,
     tr.trends,
+
     CASE
         WHEN cft.balance_rank = 1 AND clc.loan_status = 'Yes' THEN 'Yes'
         ELSE 'No'
     END AS financial_trouble_flag
+
 FROM customers c
-LEFT JOIN customer_balance cb ON c.customer_id = cb.customer_id
-LEFT JOIN customer_loan_count clc ON cb.customer_id = clc.customer_id
-LEFT JOIN customer_financial_trouble cft ON clc.customer_id = cft.customer_id
-LEFT JOIN customer_trend tr ON cft.customer_id = tr.customer_id;
+LEFT JOIN customer_balance cb
+    ON c.customer_id = cb.customer_id
+LEFT JOIN customer_loan_count clc
+    ON cb.customer_id = clc.customer_id
+LEFT JOIN customer_financial_trouble cft
+    ON clc.customer_id = cft.customer_id
+LEFT JOIN customer_trend tr
+    ON cft.customer_id = tr.customer_id;
 ```
 
 ## Mga Desisyon Sa Likod Ng Query
