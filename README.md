@@ -1,5 +1,5 @@
 # Customer Profile & Financial Risk Analysis
-*Mini-Project #1 — SQL, Window Functions & Data Integrity (Banking)*
+*Mini-Project #2 — SQL, Window Functions & Data Integrity (Banking)*
 
 ## Business Context
 
@@ -35,6 +35,54 @@ Bago pumunta sa SQL, kinailangan munang linawin ang pinaka-malabong term sa requ
 | Loan Count | `loans` | customer_id |
 | Financial Trouble | `loans` + `accounts` | status, balance |
 
+**Sample Data:**
+
+`customers`
+
+| customer_id | customer_name | branch | join_date |
+|---|---|---|---|
+| 1 | Ana Reyes | Makati Branch | 2021-03-15 |
+| 2 | Ben Cruz | Quezon City Branch | 2022-07-01 |
+| 3 | Carla Santos | Cebu Branch | 2023-01-10 |
+| 4 | Diego Torres | Makati Branch | 2020-11-05 |
+
+`accounts`
+
+| account_id | customer_id | account_type | balance |
+|---|---|---|---|
+| 101 | 1 | Savings | 150,000 |
+| 102 | 1 | Checking | 45,000 |
+| 103 | 2 | Savings | 80,000 |
+| 104 | 3 | Savings | 20,000 |
+| 105 | 4 | Checking | 300,000 |
+| 106 | 4 | Time Deposit | 500,000 |
+
+`transactions`
+
+| transaction_id | account_id | transaction_date | transaction_type | amount |
+|---|---|---|---|---|
+| 1001 | 101 | 2024-01-05 | Deposit | 20,000 |
+| 1002 | 101 | 2024-02-10 | Withdrawal | 5,000 |
+| 1003 | 101 | 2024-03-15 | Deposit | 15,000 |
+| 1004 | 102 | 2024-01-20 | Deposit | 10,000 |
+| 1005 | 103 | 2024-02-01 | Withdrawal | 3,000 |
+| 1006 | 103 | 2024-02-15 | Deposit | 8,000 |
+| 1007 | 105 | 2024-01-10 | Deposit | 50,000 |
+| 1008 | 105 | 2024-04-01 | Withdrawal | 20,000 |
+| 1009 | 106 | 2021-06-01 | Deposit | 500,000 |
+
+*(Walang laman na row para sa account 104 — ito mismo ang naging sanhi ng LEFT JOIN bug na natuklasan sa proseso.)*
+
+`loans`
+
+| loan_id | customer_id | loan_type | loan_amount | interest_rate | status |
+|---|---|---|---|---|---|
+| 201 | 1 | Personal | 50,000 | 8.50 | Active |
+| 202 | 2 | Home | 1,500,000 | 6.25 | Active |
+| 203 | 3 | Auto | 600,000 | 7.00 | Overdue |
+| 204 | 4 | Business | 2,000,000 | 5.75 | Active |
+| 205 | 1 | Auto | 400,000 | 7.25 | Paid |
+
 ## SQL Query
 
 ```sql
@@ -49,28 +97,11 @@ transaction_running AS (
     SELECT
         account_id,
         transaction_date,
-
         SUM(
-            CASE
-                WHEN transaction_type = 'Withdrawal' THEN -amount
-                ELSE amount
-            END)
-        OVER(
-            PARTITION BY account_id
-            ORDER BY transaction_date
-        ) AS running_total,
-
-        ROW_NUMBER()
-        OVER(
-            PARTITION BY account_id
-            ORDER BY transaction_date ASC
-        ) AS rn_asc,
-
-        ROW_NUMBER()
-        OVER(
-            PARTITION BY account_id
-            ORDER BY transaction_date DESC
-        ) AS rn_desc
+            CASE WHEN transaction_type = 'Withdrawal' THEN -amount ELSE amount END
+        ) OVER (PARTITION BY account_id ORDER BY transaction_date) AS running_total,
+        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date ASC) AS rn_asc,
+        ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY transaction_date DESC) AS rn_desc
     FROM transactions
 ),
 account_trend AS (
@@ -91,8 +122,7 @@ customer_trend AS (
             ELSE 'No Transaction History'
         END AS trends
     FROM accounts a
-    LEFT JOIN account_trend ct
-        ON ct.account_id = a.account_id
+    LEFT JOIN account_trend ct ON ct.account_id = a.account_id
     GROUP BY a.customer_id
 ),
 customer_loan_count AS (
@@ -106,10 +136,7 @@ customer_loan_count AS (
 customer_financial_trouble AS (
     SELECT
         customer_id,
-        NTILE(5)
-        OVER(
-            ORDER BY total_balance ASC
-        ) AS balance_rank
+        NTILE(5) OVER (ORDER BY total_balance ASC) AS balance_rank
     FROM customer_balance
 )
 SELECT
@@ -123,14 +150,10 @@ SELECT
         ELSE 'No'
     END AS financial_trouble_flag
 FROM customers c
-LEFT JOIN customer_balance cb
-    ON c.customer_id = cb.customer_id
-LEFT JOIN customer_loan_count clc
-    ON cb.customer_id = clc.customer_id
-LEFT JOIN customer_financial_trouble cft
-    ON clc.customer_id = cft.customer_id
-LEFT JOIN customer_trend tr
-    ON cft.customer_id = tr.customer_id;
+LEFT JOIN customer_balance cb ON c.customer_id = cb.customer_id
+LEFT JOIN customer_loan_count clc ON cb.customer_id = clc.customer_id
+LEFT JOIN customer_financial_trouble cft ON clc.customer_id = cft.customer_id
+LEFT JOIN customer_trend tr ON cft.customer_id = tr.customer_id;
 ```
 
 ## Mga Desisyon Sa Likod Ng Query
@@ -162,5 +185,5 @@ Kailangan nating i-reach out agad si Carla Santos para alamin ang dahilan ng ove
 
 - **SQL:** Multiple CTEs, window functions (`SUM() OVER`, `ROW_NUMBER()`, `NTILE()`), conditional aggregation (`MAX(CASE WHEN...)`)
 - **Data Integrity:** Natukoy at naayos ang isang silent data-loss bug (INNER JOIN vs LEFT JOIN) na hindi nagpapakita ng error message
-- **Business Thinking:** Pag-define ng malabong term ("financial trouble") gamit ang combination ng mga signal, hindi isang sukatan lang
+- **Business Thinking:** Pag-define ng malabong termino ("financial trouble") gamit ang kumbinasyon ng mga signal, hindi isang sukatan lang
 - **Business Communication:** "Answer First" na recommendation format
